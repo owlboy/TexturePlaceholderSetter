@@ -9,36 +9,32 @@ public class TexturePlaceholderSetter : MonoBehaviour
     public Texture mainTexture;
 }
 
-[CustomEditor(typeof(TexturePlaceholderSetter))]
-public class TextureSetterEditor : Editor
+[InitializeOnLoad]
+public class TextureSetterEditor
 {
-    private TexturePlaceholderSetter textureSetter;
-
-    private void OnEnable()
+    static TextureSetterEditor()
     {
-        textureSetter = (TexturePlaceholderSetter)target;
         EditorApplication.playModeStateChanged += OnPlayModeStateChanged;
     }
 
-    private void OnDisable()
+    private static void OnPlayModeStateChanged(PlayModeStateChange state)
     {
-        EditorApplication.playModeStateChanged -= OnPlayModeStateChanged;
-    }
-
-    public override void OnInspectorGUI()
-    {
-        base.OnInspectorGUI();
-    }
-
-    private void OnPlayModeStateChanged(PlayModeStateChange state)
-    {
-        if (state == PlayModeStateChange.EnteredEditMode)
+        if (state == PlayModeStateChange.ExitingPlayMode)
         {
-            SetMainTexture();
+            EditorApplication.delayCall += SetMainTextures;
         }
     }
 
-    private void SetMainTexture()
+    private static void SetMainTextures()
+    {
+        TexturePlaceholderSetter[] textureSetters = GameObject.FindObjectsOfType<TexturePlaceholderSetter>();
+        foreach (TexturePlaceholderSetter textureSetter in textureSetters)
+        {
+            SetMainTexture(textureSetter);
+        }
+    }
+
+    private static void SetMainTexture(TexturePlaceholderSetter textureSetter)
     {
         if (textureSetter.targetMaterial == null || textureSetter.mainTexture == null)
         {
